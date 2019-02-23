@@ -56,8 +56,12 @@ class MuninNode
                     $this->writeToStream($client, $list);
                     break;
                 case 'config':
+                    $out = $this->getPluginConfig($action['argument']);
+                    $this->writeToStream($client, $out);
                     break;
                 case 'fetch':
+                    $out = $this->getPluginValues($action['argument']);
+                    $this->writeToStream($client, $out);
                     break;
                 case 'version':
                     $this->writeToStream($client, 'Bloatless Munin Node v' . self::VERSION);
@@ -72,6 +76,36 @@ class MuninNode
                     break;
             }
         }
+    }
+
+    public function getPluginConfig(string $identifier): string
+    {
+        if (!isset($this->plugins[$identifier])) {
+            // @todo Handle unknown plugin
+            return '';
+        }
+        $pluginConfig = $this->plugins[$identifier]->getConfiguration();
+        $output = '';
+        foreach ($pluginConfig as $configKey => $configValue) {
+            $output .= $configKey . ' ' . $configValue . PHP_EOL;
+        }
+        $output .= '.';
+        return $output;
+    }
+
+    public function getPluginValues(string $identifier): string
+    {
+        if (!isset($this->plugins[$identifier])) {
+            // @todo Handle unknown plugin
+            return '';
+        }
+        $values = $this->plugins[$identifier]->getValues();
+        $output = '';
+        foreach ($values as $valueKey => $value) {
+            $output .= $valueKey . ' ' . $value . PHP_EOL;
+        }
+        $output .= '.';
+        return $output;
     }
 
     protected function loadPlugins(): void
