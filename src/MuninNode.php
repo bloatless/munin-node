@@ -69,7 +69,7 @@ class MuninNode
             $data = [];
             switch ($action['command']) {
                 case 'list':
-                    $data = array_keys($this->plugins);
+                    $data = [implode(' ', array_keys($this->plugins))];
                     break;
                 case 'config':
                     $data = $this->getPluginConfig($action['argument']);
@@ -238,10 +238,12 @@ class MuninNode
             return '';
         }
 
+        // single line response
         if (count($data) === 1 && key($data) === 0) {
             return $data[0];
         }
 
+        // multi-line key-value response
         $output = '';
         foreach ($data as $key => $value) {
             $output .= $key . ' ' . $value . PHP_EOL;
