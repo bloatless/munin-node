@@ -39,8 +39,8 @@ class Load implements PluginInterface
             'graph_vlabel' => 'load',
             'graph_scale' => 'no',
             'graph_category' => 'system',
-            'graph_info' => 'The load average of the machine describes how many processes are in the run-queue 
-                (scheduled to run "immediately").',
+            'graph_info' =>
+                'The load average of the machine describes how many processes are in the run-queue (scheduled to run "immediately").',
 
             // value config
             'load.label' => 'load',
