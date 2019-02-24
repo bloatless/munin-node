@@ -40,7 +40,7 @@ class MuninNode
         // Create socket
         $ip = $this->config['bind_ip'] ?? '127.0.0.1';
         $port = $this->config['bind_port'] ?? 4949;
-        $url = sprintf('tcp:/%s:%d', $ip, $port);
+        $url = sprintf('tcp://%s:%d', $ip, $port);
         ob_implicit_flush(1);
         $context = stream_context_create();
         $socket = stream_socket_server($url, $errno, $err, STREAM_SERVER_BIND|STREAM_SERVER_LISTEN, $context);
