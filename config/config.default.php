@@ -10,6 +10,7 @@ return [
         '\Bloatless\MuninNode\Plugins\Cpu' => __DIR__ . '/../src/Plugins/Cpu.php',
         '\Bloatless\MuninNode\Plugins\If_' => __DIR__ . '/../src/Plugins/If_.php',
         '\Bloatless\MuninNode\Plugins\Load' => __DIR__ . '/../src/Plugins/Load.php',
+        '\Bloatless\MuninNode\Plugins\Memory' => __DIR__ . '/../src/Plugins/Memory.php',
         '\Bloatless\MuninNode\Plugins\Uptime' => __DIR__ . '/../src/Plugins/Uptime.php',
     ],
 
@@ -27,6 +28,8 @@ return [
         ],
 
         'load' => [],
+
+        'memory' => [],
 
         'uptime' => [],
     ],
