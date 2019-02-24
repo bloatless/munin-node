@@ -8,12 +8,17 @@ return [
     // Enabled/Active plugins (Class Name => Plugin Path)
     'plugins' => [
         '\Bloatless\MuninNode\Plugins\Load' => __DIR__ . '/../src/Plugins/Load.php',
+        '\Bloatless\MuninNode\Plugins\Cpu' => __DIR__ . '/../src/Plugins/Cpu.php',
     ],
 
     // Plugin specific configuration (key must match plugin identifier)
     'plugin_config' => [
-        'load' => [
+        'load' => [],
 
-        ]
+        // If cores/fields are not set plugin will try to estimate the values from automatically
+        'cpu' => [
+            //'cpu_cores' => 1,
+            //'cpu_fields' => ['system', 'user', 'nice', 'idle']
+        ],
     ],
 ];
