@@ -65,7 +65,7 @@ class MuninNode
                 continue;
             }
 
-            // Handle input and generate reponse
+            // Handle input and generate response
             $data = [];
             switch ($action['command']) {
                 case 'list':
