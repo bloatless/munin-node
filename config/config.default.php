@@ -10,6 +10,7 @@ return [
         '\Bloatless\MuninNode\Plugins\Cpu' => __DIR__ . '/../src/Plugins/Cpu.php',
         '\Bloatless\MuninNode\Plugins\If_' => __DIR__ . '/../src/Plugins/If_.php',
         '\Bloatless\MuninNode\Plugins\Load' => __DIR__ . '/../src/Plugins/Load.php',
+        '\Bloatless\MuninNode\Plugins\Uptime' => __DIR__ . '/../src/Plugins/Uptime.php',
     ],
 
     // Plugin specific configuration (key must match plugin identifier)
@@ -26,5 +27,7 @@ return [
         ],
 
         'load' => [],
+
+        'uptime' => [],
     ],
 ];
