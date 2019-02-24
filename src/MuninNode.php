@@ -8,33 +8,47 @@ class MuninNode
 {
     const VERSION = '0.1';
 
+    /**
+     * @var array $config
+     */
     protected $config = [];
 
+    /**
+     * @var array $plugins
+     */
     protected $plugins = [];
 
+    /**
+     * Sets configuration and initializes plugins.
+     *
+     * @param array $config
+     */
     public function __construct(array $config)
     {
         $this->config = $config;
         $this->loadPlugins();
     }
 
-    public function run()
+    /**
+     * Main application loop. Creates the socket server, listens for connections, handles commands and responds
+     * to client.
+     *
+     * @return void
+     */
+    public function run(): void
     {
+        // Create socket
+        $ip = $this->config['bind_ip'] ?? '127.0.0.1';
+        $port = $this->config['bind_port'] ?? 4949;
+        $url = sprintf('tcp:/%s:%d', $ip, $port);
         ob_implicit_flush(1);
-        $url = 'tcp://127.0.0.1:4949';
         $context = stream_context_create();
-        $socket = stream_socket_server(
-            $url,
-            $errno,
-            $err,
-            STREAM_SERVER_BIND|STREAM_SERVER_LISTEN,
-            $context
-        );
-
+        $socket = stream_socket_server($url, $errno, $err, STREAM_SERVER_BIND|STREAM_SERVER_LISTEN, $context);
         if ($socket === false) {
             throw new \RuntimeException(sprintf('Could not create socket server. (Error: %s)', $err));
         }
 
+        // Main loop: Listen for connections/commands and generate response
         $client = null;
         while (true) {
             if (empty($client)) {
@@ -42,6 +56,7 @@ class MuninNode
                 continue;
             }
 
+            // Read input from stream
             try {
                 $input = $this->readFromStream($client);
                 $action = $this->parseInput($input);
@@ -50,21 +65,20 @@ class MuninNode
                 continue;
             }
 
+            // Handle input and generate reponse
+            $data = [];
             switch ($action['command']) {
                 case 'list':
-                    $list = implode(' ', array_keys($this->plugins));
-                    $this->writeToStream($client, $list);
+                    $data = array_keys($this->plugins);
                     break;
                 case 'config':
-                    $out = $this->getPluginConfig($action['argument']);
-                    $this->writeToStream($client, $out);
+                    $data = $this->getPluginConfig($action['argument']);
                     break;
                 case 'fetch':
-                    $out = $this->getPluginValues($action['argument']);
-                    $this->writeToStream($client, $out);
+                    $data = $this->getPluginValues($action['argument']);
                     break;
                 case 'version':
-                    $this->writeToStream($client, 'Bloatless Munin Node v' . self::VERSION);
+                    $data = ['Bloatless Munin Node v' . self::VERSION];
                     break;
                 case 'quit':
                 case '.':
@@ -72,42 +86,58 @@ class MuninNode
                     $client = null;
                     break;
                 default:
-                    $this->writeToStream($client, 'Unknown command. Try list, config, fetch, version or quit');
+                    $data = ['# Unknown command. Try list, config, fetch, version or quit'];
                     break;
+            }
+
+            if (empty($data)) {
+                continue;
+            }
+
+            // Send response to client
+            try {
+                $output = $this->toOutputString($data);
+                $this->writeToStream($client, $output);
+            } catch (\RuntimeException $e) {
+                $client = null;
+                continue;
             }
         }
     }
 
-    public function getPluginConfig(string $identifier): string
+    /**
+     * Fetches configuration values from plugin (config command).
+     *
+     * @param string $identifier
+     * @return array
+     */
+    public function getPluginConfig(string $identifier): array
     {
         if (!isset($this->plugins[$identifier])) {
-            // @todo Handle unknown plugin
-            return '';
+            return ['# Unknown service.'];
         }
-        $pluginConfig = $this->plugins[$identifier]->getConfiguration();
-        $output = '';
-        foreach ($pluginConfig as $configKey => $configValue) {
-            $output .= $configKey . ' ' . $configValue . PHP_EOL;
-        }
-        $output .= '.';
-        return $output;
+        return $this->plugins[$identifier]->getConfiguration();
     }
 
-    public function getPluginValues(string $identifier): string
+    /**
+     * Fetches actual values from plugin (fetch command).
+     *
+     * @param string $identifier
+     * @return array
+     */
+    public function getPluginValues(string $identifier): array
     {
         if (!isset($this->plugins[$identifier])) {
-            // @todo Handle unknown plugin
-            return '';
+            return ['# Unknown service.'];
         }
-        $values = $this->plugins[$identifier]->getValues();
-        $output = '';
-        foreach ($values as $valueKey => $value) {
-            $output .= $valueKey . ' ' . $value . PHP_EOL;
-        }
-        $output .= '.';
-        return $output;
+        return $this->plugins[$identifier]->getValues();
     }
 
+    /**
+     * Loads/Initializes all plugins enabled in config file.
+     *
+     * @return void
+     */
     protected function loadPlugins(): void
     {
         if (empty($this->config['plugins'])) {
@@ -121,10 +151,18 @@ class MuninNode
             /** @var \Bloatless\MuninNode\Plugins\PluginInterface $plugin */
             $plugin = new $class;
             $id = $plugin->getIdentifier();
+            $plugin->setConfig($this->config['plugin_config'][$id] ?? []);
             $this->plugins[$id] = $plugin;
         }
     }
 
+    /**
+     * Reads data from given resource/stream.
+     *
+     * @param Resource $resource
+     * @return string
+     * @throws \RuntimeException
+     */
     protected function readFromStream($resource): string
     {
         $buffer = '';
@@ -146,7 +184,15 @@ class MuninNode
         return $buffer;
     }
 
-    public function writeToStream($resource, string $output = ''): bool
+    /**
+     * Writes data to given resourse/stream.
+     *
+     * @param Resource $resource
+     * @param string $output
+     * @return bool
+     * @throws \RuntimeException
+     */
+    protected function writeToStream($resource, string $output = ''): bool
     {
         if (empty($output)) {
             return true;
@@ -158,7 +204,13 @@ class MuninNode
         return true;
     }
 
-    public function parseInput(string $input): array
+    /**
+     * Separates client input into command and argument(s).
+     *
+     * @param string $input
+     * @return array
+     */
+    protected function parseInput(string $input): array
     {
         $input = trim($input);
         if (in_array($input, ['list', 'version', 'quit', '.'])) {
@@ -172,5 +224,30 @@ class MuninNode
             'command' => $inputParts[0],
             'argument' => $inputParts[1],
         ];
+    }
+
+    /**
+     * Converts data-array to a string which can be written to stream.
+     *
+     * @param array $data
+     * @return string
+     */
+    protected function toOutputString(array $data): string
+    {
+        if (empty($data)) {
+            return '';
+        }
+
+        if (count($data) === 1 && key($data) === 0) {
+            return $data[0];
+        }
+
+        $output = '';
+        foreach ($data as $key => $value) {
+            $output .= $key . ' ' . $value . PHP_EOL;
+        }
+        $output .= '.';
+
+        return $output;
     }
 }
