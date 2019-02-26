@@ -42,18 +42,25 @@ class MuninNode
         $port = $this->config['bind_port'] ?? 4949;
         $url = sprintf('tcp://%s:%d', $ip, $port);
         ob_implicit_flush(1);
-        $context = stream_context_create();
-        $socket = stream_socket_server($url, $errno, $err, STREAM_SERVER_BIND|STREAM_SERVER_LISTEN, $context);
+        $socket = stream_socket_server($url, $errno, $err);
         if ($socket === false) {
             throw new \RuntimeException(sprintf('Could not create socket server. (Error: %s)', $err));
         }
+
+        // Disconnect client after 10 seconds of inactivity
+        stream_set_timeout($socket, 10);
 
         // Main loop: Listen for connections/commands and generate response
         $client = null;
         while (true) {
             if (empty($client)) {
                 $client = @stream_socket_accept($socket, 5);
-                continue;
+                if ($client === false) {
+                    continue;
+                }
+
+                // Send welcome message
+                $this->writeToStream($client, '# Bloatless Munin Node');
             }
 
             // Read input from stream
@@ -61,6 +68,7 @@ class MuninNode
                 $input = $this->readFromStream($client);
                 $action = $this->parseInput($input);
             } catch (\RuntimeException $e) {
+                fclose($client);
                 $client = null;
                 continue;
             }
@@ -172,7 +180,7 @@ class MuninNode
             if (feof($resource)) {
                 throw new \RuntimeException('Client disconnected.');
             }
-            $result = fread($resource, $bytesToRead);
+            $result = fgets($resource, $bytesToRead);
             if ($result === false || feof($resource)) {
                 throw new \RuntimeException('Client disconnected.');
             }
