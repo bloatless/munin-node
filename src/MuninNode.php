@@ -138,7 +138,13 @@ class MuninNode
         if (!isset($this->plugins[$identifier])) {
             return ['# Unknown service.'];
         }
-        return $this->plugins[$identifier]->getValues();
+        $values = $this->plugins[$identifier]->getValues();
+        $valuesForOutput = [];
+        foreach ($values as $key => $value) {
+            $key = str_replace('.value', '', $key) . '.value';
+            $valuesForOutput[$key] = $value;
+        }
+        return $valuesForOutput;
     }
 
     /**
