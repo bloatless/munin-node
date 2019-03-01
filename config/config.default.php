@@ -8,6 +8,7 @@ return [
     // Enabled/Active plugins (Class Name => Plugin Path)
     'plugins' => [
         '\Bloatless\MuninNode\Plugins\Cpu' => __DIR__ . '/../src/Plugins/Cpu.php',
+        '\Bloatless\MuninNode\Plugins\Df' => __DIR__ . '/../src/Plugins/Df.php',
         '\Bloatless\MuninNode\Plugins\If_' => __DIR__ . '/../src/Plugins/If_.php',
         '\Bloatless\MuninNode\Plugins\Load' => __DIR__ . '/../src/Plugins/Load.php',
         '\Bloatless\MuninNode\Plugins\Memory' => __DIR__ . '/../src/Plugins/Memory.php',
@@ -21,6 +22,10 @@ return [
         'cpu' => [
             //'cpu_cores' => 1,
             //'cpu_fields' => ['system', 'user', 'nice', 'idle']
+        ],
+
+        'df' => [
+            //'exclude' => [],
         ],
 
         'if_' => [
