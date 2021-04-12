@@ -60,7 +60,7 @@ class Cpu implements PluginInterface
         // graph config
         $configuration = [
             'graph_title' => 'CPU usage',
-            'graph_order' => implode($this->cpuFields, ' '),
+            'graph_order' => implode(' ', $this->cpuFields),
             'graph_args' => '--base 1000 -r --lower-limit 0 --upper-limit '.  $this->cpuCores * 100,
 
             'graph_vlabel' => '%',
