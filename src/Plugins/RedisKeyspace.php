@@ -86,7 +86,7 @@ class RedisKeyspace implements PluginInterface
             if ($line === '') {
                 continue;
             }
-            $matchCount = preg_match('/db([0-9+]):keys=([0-9]+),expires=([0-9]+)/', $line, $match);
+            $matchCount = preg_match('/db([0-9]+):keys=([0-9]+),expires=([0-9]+)/', $line, $match);
             if ($matchCount !== 1) {
                 continue;
             }
