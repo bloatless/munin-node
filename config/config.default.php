@@ -37,5 +37,23 @@ return [
         'memory' => [],
 
         'uptime' => [],
+
+        'redis_stats' => [
+            'host' => '127.0.0.1',
+            'port' => 6379,
+            'password' => '',
+        ],
+
+        'redis_memory' => [
+            'host' => '127.0.0.1',
+            'port' => 6379,
+            'password' => '',
+        ],
+
+        'redis_keyspace' => [
+            'host' => '127.0.0.1',
+            'port' => 6379,
+            'password' => '',
+        ],
     ],
 ];
