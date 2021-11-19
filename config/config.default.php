@@ -55,5 +55,11 @@ return [
             'port' => 6379,
             'password' => '',
         ],
+
+        'mysql_commands' => [
+            'dsn' => 'mysql:host=localhost',
+            'username' => '',
+            'password' => '',
+        ],
     ],
 ];
